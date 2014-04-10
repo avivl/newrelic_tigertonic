@@ -85,7 +85,7 @@ func (metrica *timerPercentile95Metrica) GetValue() (float64, error) {
 	return metrica.dataSource.Percentile(0.95) / float64(time.Millisecond), nil
 }
 
-func addHTTPMericsToComponent(component newrelic_platform_go.IComponent, timer metrics.Timer, timerName string) {
+func addTimerMericsToComponent(component newrelic_platform_go.IComponent, timer metrics.Timer, timerName string) {
 	rate1 := &timerRate1Metrica{
 		baseTimerMetrica: &baseTimerMetrica{
 			name:       timerName + "/" + "http/throughput/1minute",

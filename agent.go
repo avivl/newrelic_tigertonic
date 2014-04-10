@@ -69,7 +69,7 @@ func (agent *Agent) Run() error {
 	registry.Each(func(name string, i interface{}) {
 		switch metric := i.(type) {
 		case metrics.Timer:
-			addHTTPMericsToComponent(component, metric, name)
+			addTimerMericsToComponent(component, metric, name)
 		}
 	})
 
