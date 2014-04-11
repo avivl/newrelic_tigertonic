@@ -13,6 +13,7 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
+	"time"
 
 	"newrelic_tigertonic"
 
@@ -208,10 +209,12 @@ func create(u *url.URL, h http.Header, rq *MyRequest) (int, http.Header, *MyResp
 
 // GET /stuff/{id}
 func get(u *url.URL, h http.Header, _ interface{}) (int, http.Header, *MyResponse, error) {
+
 	return http.StatusOK, nil, &MyResponse{u.Query().Get("id"), "STUFF"}, nil
 }
 
 // POST /stuff/{id}
 func update(u *url.URL, h http.Header, rq *MyRequest) (int, http.Header, *MyResponse, error) {
+	time.Sleep(time.Millisecond * 100)
 	return http.StatusAccepted, nil, &MyResponse{u.Query().Get("id"), "STUFF"}, nil
 }

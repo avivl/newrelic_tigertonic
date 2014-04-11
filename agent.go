@@ -70,6 +70,9 @@ func (agent *Agent) Run() error {
 		switch metric := i.(type) {
 		case metrics.Timer:
 			addTimerMericsToComponent(component, metric, name)
+		case metrics.Counter:
+			addCounterMericsToComponent(component, metric, name)
+
 		}
 	})
 
