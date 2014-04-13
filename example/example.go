@@ -14,9 +14,7 @@ import (
 	"strings"
 	"syscall"
 	"time"
-
-	"newrelic_tigertonic"
-
+	"github.com/rounds/newrelic_tigertonic"
 	"github.com/rcrowley/go-metrics"
 	"github.com/rcrowley/go-tigertonic"
 )
@@ -171,11 +169,14 @@ func main() {
 			nil,
 		),
 	)
+	// start newrelic example
 	agent := newrelic_tigertonic.NewAgent()
 	agent.Verbose = true
 	agent.NewrelicLicense = *newrelicLicense
 	agent.NewrelicName = "TigerTonic Example"
 	agent.Run()
+	//end of new relic example
+
 	// Example use of server.Close to stop gracefully.
 	go func() {
 		var err error
