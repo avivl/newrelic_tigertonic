@@ -13,7 +13,7 @@ import (
 const (
 	// DefaultNewRelicPollInterval - how often we will report metrics to NewRelic.
 	// Recommended values is 60 seconds
-	DefaultNewRelicPollInterval = 10
+	DefaultNewRelicPollInterval = 60
 
 	// DefaultPollIntervalInSeconds - how often we will get  statistic
 	// Default value is - every 10 seconds
