@@ -1,4 +1,4 @@
-// Metrics output to newrelic.
+// Package newrelic_tigertonic provides metrics output to newrelic.
 // based on https://github.com/yvasiyarov/gorelic
 package newrelic_tigertonic
 
@@ -19,19 +19,19 @@ const (
 	// Default value is - every 10 seconds
 	DefaultPollIntervalInSeconds = 10
 
-	//DefaultAgentGuid is plugin ID in NewRelic.
-	//You should not change it unless you want to create your own plugin.
-	DefaultAgentGuid = "com.rounds.TigerTonic"
+	// DefaultAgentGUID is plugin ID in NewRelic.
+	// You should not change it unless you want to create your own plugin.
+	DefaultAgentGUID = "com.rounds.TigerTonic"
 
-	//CurrentAgentVersion is plugin version
-	CurrentAgentVersion = "0.0.1"
+	// CurrentAgentVersion is plugin version
+	CurrentAgentVersion = "0.0.2"
 
-	//DefaultAgentName in NewRelic GUI. You can change it.
+	// DefaultAgentName in NewRelic GUI. You can change it.
 	DefaultAgentName = "TigerTonic"
 )
 
-//Agent - is NewRelic agent implementation.
-//Agent start separate go routine which will report data to NewRelic
+// Agent - is NewRelic agent implementation.
+// Agent start separate go routine which will report data to NewRelic
 type Agent struct {
 	NewrelicName         string
 	NewrelicLicense      string
@@ -43,23 +43,24 @@ type Agent struct {
 	plugin               *newrelic_platform_go.NewrelicPlugin
 }
 
-//NewAgent build new Agent objects.
+// NewAgent build new Agent objects.
 func NewAgent() *Agent {
 	agent := &Agent{
 		NewrelicName:         DefaultAgentName,
 		NewrelicPollInterval: DefaultNewRelicPollInterval,
 		Verbose:              false,
 		PollInterval:         DefaultPollIntervalInSeconds,
-		AgentGUID:            DefaultAgentGuid,
+		AgentGUID:            DefaultAgentGUID,
 		AgentVersion:         CurrentAgentVersion,
 	}
 	return agent
 }
 
-//Run initialize Agent instance and start harvest go routine
+// Run initialize Agent instance and start harvest go routine
 func (agent *Agent) Run() error {
+
 	if agent.NewrelicLicense == "" {
-		return errors.New("please, pass a valid newrelic license key")
+		return errors.New("Cannot start NewRelic agent, pass a valid license key")
 	}
 
 	agent.plugin = newrelic_platform_go.NewNewrelicPlugin(agent.AgentVersion, agent.NewrelicLicense, agent.NewrelicPollInterval)
@@ -72,7 +73,6 @@ func (agent *Agent) Run() error {
 			addTimerMericsToComponent(component, metric, name)
 		case metrics.Counter:
 			addCounterMericsToComponent(component, metric, name)
-
 		}
 	})
 
@@ -81,7 +81,7 @@ func (agent *Agent) Run() error {
 	return nil
 }
 
-//Print debug messages
+// Print debug messages
 func (agent *Agent) debug(msg string) {
 	if agent.Verbose {
 		log.Println(msg)

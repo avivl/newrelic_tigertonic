@@ -5,6 +5,9 @@ import (
 	_ "expvar" // Imported for side-effect of handling /debug/vars.
 	"flag"
 	"fmt"
+	"github.com/rcrowley/go-metrics"
+	"github.com/rcrowley/go-tigertonic"
+	"github.com/rounds/newrelic_tigertonic"
 	"log"
 	"net/http"
 	_ "net/http/pprof" // Imported for side-effect of handling /debug/pprof.
@@ -14,9 +17,6 @@ import (
 	"strings"
 	"syscall"
 	"time"
-	"github.com/rounds/newrelic_tigertonic"
-	"github.com/rcrowley/go-metrics"
-	"github.com/rcrowley/go-tigertonic"
 )
 
 var (
@@ -59,7 +59,10 @@ func init() {
 	mux.Handle(
 		"POST",
 		"/stuff",
-		tigertonic.Timed(tigertonic.Marshaled(create), "POST-stuff", nil),
+		tigertonic.Timed(
+			tigertonic.Marshaled(create),
+			"POST-stuff",
+			nil),
 	)
 	mux.Handle(
 		"GET",
@@ -67,13 +70,15 @@ func init() {
 		cors.Build(tigertonic.Timed(
 			tigertonic.Marshaled(get),
 			"GET-stuff-id",
-			nil,
-		)),
+			nil)),
 	)
 	mux.Handle(
 		"POST",
 		"/stuff/{id}",
-		tigertonic.Timed(tigertonic.Marshaled(update), "POST-stuff-id", nil),
+		tigertonic.Timed(
+			tigertonic.Marshaled(update),
+			"POST-stuff-id",
+			nil),
 	)
 
 	// Example use of the If middleware to forbid access to certain endpoints
@@ -81,7 +86,7 @@ func init() {
 	// this example).
 	mux.Handle("GET", "/forbidden", cors.Build(tigertonic.If(
 		func(*http.Request) (http.Header, error) {
-			return nil, tigertonic.Forbidden{errors.New("forbidden")}
+			return nil, tigertonic.Forbidden{Err: errors.New("forbidden")}
 		},
 		tigertonic.Marshaled(func(*url.URL, http.Header, interface{}) (int, http.Header, interface{}, error) {
 			return http.StatusOK, nil, &MyResponse{}, nil
@@ -149,32 +154,41 @@ func main() {
 		*listen,
 
 		// Example use of go-metrics to track HTTP status codes.
-		tigertonic.CountedByStatus(
+		tigertonic.Timed(
+			tigertonic.CountedByStatus(
+				// Example use of request logging, redacting the word SECRET
+				// wherever it appears.
+				tigertonic.Logged(
 
-			// Example use of request logging, redacting the word SECRET
-			// wherever it appears.
-			tigertonic.Logged(
+					// Example use of WithContext, which is required in order to
+					// use Context within any handlers.  The second argument is a
+					// zero value of the type to be used for all actual request
+					// contexts.
+					tigertonic.WithContext(hMux, context{}),
 
-				// Example use of WithContext, which is required in order to
-				// use Context within any handlers.  The second argument is a
-				// zero value of the type to be used for all actual request
-				// contexts.
-				tigertonic.WithContext(hMux, context{}),
-
-				func(s string) string {
-					return strings.Replace(s, "SECRET", "REDACTED", -1)
-				},
+					func(s string) string {
+						return strings.Replace(s, "SECRET", "REDACTED", -1)
+					},
+				),
+				"http", // NOT a counter name but a prefix to status code
+				nil,
 			),
-			"http",
+			"http", // counter name
 			nil,
 		),
 	)
 	// start newrelic example
-	agent := newrelic_tigertonic.NewAgent()
-	agent.Verbose = true
-	agent.NewrelicLicense = *newrelicLicense
-	agent.NewrelicName = "TigerTonic Example"
-	agent.Run()
+	go func() {
+		var err error
+		agent := newrelic_tigertonic.NewAgent()
+		agent.Verbose = true
+		agent.NewrelicLicense = *newrelicLicense
+		agent.NewrelicName = "TigerTonic Example"
+		err = agent.Run()
+		if nil != err {
+			log.Println(err)
+		}
+	}()
 	//end of new relic example
 
 	// Example use of server.Close to stop gracefully.
